@@ -1,0 +1,142 @@
+/// <reference path="../../../typings/googlemaps/google.maps.d.ts" />
+import {Component, OnInit, ViewEncapsulation, Output,EventEmitter} from '@angular/core';
+import { AgmCoreModule , LatLngLiteral } from 'angular2-google-maps/core';
+
+@Component({
+    selector: 'game',
+    styleUrls: ['game.css'],
+    templateUrl: 'game.html',
+    encapsulation: ViewEncapsulation.None
+})
+
+export class GameComponent implements OnInit {
+    @Output()  onchangeKM:EventEmitter<string>=new EventEmitter<string>();
+
+    distance: string;
+    sourceStr: string = 'הדף היומי 6 תל אביב';
+    destinationStr: string = 'הצנחנים 22 תל אביב';
+    destinationPoint:Point= {lat:40.7127837, lng:-74.00594130000002};;
+    source: Point;
+    destination: Point;
+    point: Point;
+    user: string;
+    public  address: string;
+    distanceFromStartPoint: number = 0
+    locations: Point[] = [];
+
+
+
+    constructor() {
+        this.point = {lat:40.7127837, lng:-74.00594130000002}; //This line is temp
+        navigator.geolocation.getCurrentPosition(position=> {
+            this.point = this.source = this.destination = {lat:position.coords.latitude, lng:position.coords.longitude}
+            this.locations.push(this.point);  
+        });
+    }
+
+    ngOnInit() {
+    }
+    getRadius(x){
+          return x * Math.PI / 180;
+    }
+   calculateDistance(p1: Point, p2: Point){
+        let R = 6378137; // Earth’s mean radius in meter
+        let dLat = this.getRadius(p2.lat - p1.lat );
+        let dLong =this.getRadius(p2.lng - p1.lng);
+        let a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(this.getRadius(p1.lat)) * Math.cos(this.getRadius(p2.lat)) *
+            Math.sin(dLong / 2) * Math.sin(dLong / 2)
+        let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        var d = R * c  / 1000; //distance in km
+        this.distanceFromStartPoint += d;
+        this.distanceFormat();
+    }
+
+    
+    calculateAddress(point: Point)
+    {
+        let geocoder = new google.maps.Geocoder();
+        let latlng = new google.maps.LatLng(point.lat, point.lng);
+        let request = {
+                  latLng: latlng
+                };   
+        var self=this;
+        
+         geocoder.geocode(request, function(results, status) {
+                    if (status == google.maps.GeocoderStatus.OK) {
+                      if (results[0] != null) {
+                       self.address = results[0].formatted_address;                      
+
+                    //   this.shareService.setLocationDetails(city);
+
+
+                      }
+                    }
+                  });
+    }
+
+    distanceFormat(){
+        let km = Math.floor(this.distanceFromStartPoint);
+        let meters = Math.round((this.distanceFromStartPoint * 1000) % 1000);
+        this.distance = (km > 0 ? km + ' KM, ':'' )+ meters + (meters == 1? ' meter': ' meters');
+        this.onchangeKM.emit(this.distance);
+    }
+
+    movePointer(){
+        setInterval(()=>{
+            let prevPoint = this.point;
+            this.point = {lat: this.point.lat+0.0001, lng: this.point.lng};  
+            this.locations.push(this.point);  
+            this.calculateDistance(prevPoint, this.point);
+            //draw route
+            this.calculateAddress(this.point);
+            this.checkIfSuccess();
+        }, 250)
+
+    }
+
+    getMap(){      
+         let geocoder3 = new google.maps.Geocoder();
+            geocoder3.geocode( { 'address': this.sourceStr}, (results, status)=> {
+                if (status == google.maps.GeocoderStatus.OK) {
+                    let latitude = results[0].geometry.location.lat();
+                    let longitude = results[0].geometry.location.lng(); 
+                    this.point = this.source ={lat: latitude, lng: longitude};                
+                    } 
+                 else{
+                     console.log("source: Address not found")
+                 }
+            });
+            geocoder3.geocode( { 'address': this.destinationStr}, (results, status)=> {
+                if (status == google.maps.GeocoderStatus.OK) {
+                    let latitude = results[0].geometry.location.lat();
+                    let longitude = results[0].geometry.location.lng(); 
+                    this.destinationPoint.lat=latitude;
+                    this.destinationPoint.lng=longitude;
+                    this.destination ={lat: latitude, lng: longitude};                
+                    } 
+                 else{
+                     console.log("destination: Address not found")
+                 }
+            });
+    }
+
+    checkIfSuccess(){
+        if (this.point.lat.toFixed(3)==this.destinationPoint.lat.toFixed(3)&&this.point.lng.toFixed(3)==this.destinationPoint.lng.toFixed(3)){
+            console.log("success");
+        }
+
+    }
+}
+export class Point {
+    lat: number;
+    lng: number;
+}
+
+ 
+
+
+
+
+ 
+
