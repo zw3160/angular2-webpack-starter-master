@@ -1,6 +1,7 @@
 /// <reference path="../../../typings/googlemaps/google.maps.d.ts" />
-import {Component, OnInit, ViewEncapsulation, Output,EventEmitter} from '@angular/core';
+import {Component, OnInit, ViewEncapsulation, Output,EventEmitter, Input} from '@angular/core';
 import { AgmCoreModule , LatLngLiteral } from 'angular2-google-maps/core';
+import {GameData} from '../../data/game_data';
 
 @Component({
     selector: 'game',
@@ -10,11 +11,14 @@ import { AgmCoreModule , LatLngLiteral } from 'angular2-google-maps/core';
 })
 
 export class GameComponent implements OnInit {
-    @Output()  onchangeKM:EventEmitter<string>=new EventEmitter<string>();
-
+    @Output()  onchangeKM:EventEmitter<Object>=new EventEmitter<Object>();
+    @Input() gameData: GameData;
+    currentAddress:string;
+    timerStr:string="";
+   // timer:date = new Date();
     distance: string;
-    sourceStr: string = 'הדף היומי 6 תל אביב';
-    destinationStr: string = 'הצנחנים 22 תל אביב';
+    // sourceStr: string = 'הדף היומי 6 תל אביב';
+    // destinationStr: string = 'הצנחנים 22 תל אביב';
     destinationPoint:Point= {lat:40.7127837, lng:-74.00594130000002};;
     source: Point;
     destination: Point;
@@ -35,6 +39,7 @@ export class GameComponent implements OnInit {
     }
 
     ngOnInit() {
+       // this.getMap();
     }
     getRadius(x){
           return x * Math.PI / 180;
@@ -55,17 +60,17 @@ export class GameComponent implements OnInit {
     
     calculateAddress(point: Point)
     {
+        console.log('google.maps',  google.maps);
         let geocoder = new google.maps.Geocoder();
         let latlng = new google.maps.LatLng(point.lat, point.lng);
         let request = {
                   latLng: latlng
                 };   
-        var self=this;
-        
-         geocoder.geocode(request, function(results, status) {
+       
+         geocoder.geocode(request, (results, status) => {
                     if (status == google.maps.GeocoderStatus.OK) {
                       if (results[0] != null) {
-                       self.address = results[0].formatted_address;                      
+                       this.currentAddress = results[0].formatted_address;                      
 
                     //   this.shareService.setLocationDetails(city);
 
@@ -79,11 +84,15 @@ export class GameComponent implements OnInit {
         let km = Math.floor(this.distanceFromStartPoint);
         let meters = Math.round((this.distanceFromStartPoint * 1000) % 1000);
         this.distance = (km > 0 ? km + ' KM, ':'' )+ meters + (meters == 1? ' meter': ' meters');
-        this.onchangeKM.emit(this.distance);
+        this.onchangeKM.emit({distance: this.distance,currentAddress: this.currentAddress});
     }
 
-    movePointer(){
+    movePointer(){        
         setInterval(()=>{
+            //this.timer = new Date();
+            //this.timerStr = this.timer.getHours() + ":"+this.timer.getMinutes() + ":"+this.timer.getSeconds();
+            // let timer1: Moment = new Moment
+            // this.timeStr = timer1.format('HH:MM:SS');
             let prevPoint = this.point;
             this.point = {lat: this.point.lat+0.0001, lng: this.point.lng};  
             this.locations.push(this.point);  
@@ -91,13 +100,15 @@ export class GameComponent implements OnInit {
             //draw route
             this.calculateAddress(this.point);
             this.checkIfSuccess();
+
         }, 250)
 
     }
 
-    getMap(){      
+    getMap(){   
+        //console.log('getMap', this.gameData)   
          let geocoder3 = new google.maps.Geocoder();
-            geocoder3.geocode( { 'address': this.sourceStr}, (results, status)=> {
+            geocoder3.geocode( { 'address': this.gameData.route.source}, (results, status)=> {
                 if (status == google.maps.GeocoderStatus.OK) {
                     let latitude = results[0].geometry.location.lat();
                     let longitude = results[0].geometry.location.lng(); 
@@ -107,7 +118,7 @@ export class GameComponent implements OnInit {
                      console.log("source: Address not found")
                  }
             });
-            geocoder3.geocode( { 'address': this.destinationStr}, (results, status)=> {
+            geocoder3.geocode( { 'address': this.gameData.route.destination}, (results, status)=> {
                 if (status == google.maps.GeocoderStatus.OK) {
                     let latitude = results[0].geometry.location.lat();
                     let longitude = results[0].geometry.location.lng(); 

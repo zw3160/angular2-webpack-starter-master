@@ -1,7 +1,11 @@
-import {Component, OnInit, ViewEncapsulation} from '@angular/core';
+import {Component, OnInit, ViewEncapsulation, Output, EventEmitter} from '@angular/core';
 //import {select} from "ng2-redux";
 //import {Observable} from "rxjs";
 import { AgmCoreModule } from 'angular2-google-maps/core';
+import {GameData, gameData} from '../../data/game_data';
+//import {getGameData, setGameData, GameData} from '../../data/game_data';
+//import {Router} from 'angular2/router';
+
 
 @Component({
     selector: 'createGame',
@@ -11,35 +15,50 @@ import { AgmCoreModule } from 'angular2-google-maps/core';
 })
 
 export class CreateGameComponent implements OnInit {
-
-    constructor() {
-       
+    @Output()  startGame:EventEmitter<Object>=new EventEmitter<Object>();
+    gameData: GameData = gameData;
+    tempData: GameData = new GameData();
+    selectedColor:string;
+    selectedLevel:string;
+    selectedNumPlayers:string;
+    public oneAtATime:boolean = true;
+    public status:Object = {
+      isFirstOpen: true,
+      isFirstDisabled: false
+    };
+    constructor() {  
+         this.tempData.route = {source: 'הדף היומי 6 תל אביב',
+             destination: 'הצנחנים 22 תל אביב'};
     }
 
     ngOnInit() {
     }
-
-    public alerts:Array<Object> = [
-    {
-      type: 'danger',
-      msg: 'Oh snap! Change a few things up and try submitting again.'
-    },
-    {
-      type: 'success',
-      msg: 'Well done! You successfully read this important alert message.',
-      closable: true
+    
+    start(){
+      this.startGame.emit({sourceStr: this.sourceStr,destinationStr: this.destinationStr});
     }
-  ];
- 
-  public closeAlert(i:number):void {
-    this.alerts.splice(i, 1);
-  }
- 
-  public addAlert():void {
-    this.alerts.push({msg: 'Another alert!', type: 'warning', closable: true});
-  }
+    setSelectedColor(selectedColor:string){
+      this.tempData.carColor = selectedColor;
+      document.getElementById("labelColor").style.backgroundColor = selectedColor;
+    }
+
+    setSelectedLevel(selectedLevel:string){
+      this.tempData.level = selectedLevel;
+    }
+
+    setSelectednNumPlayers(selectedNumPlayers:number){
+      this.tempData.numPlayers = selectedNumPlayers;
+    }
+
+    saveGameData(){
+      console.log('save game data', this.tempData);
+      this.gameData.setData(this.tempData);
+      //add players with route according num and level
+    }
     
 }
+
+
 
  
 

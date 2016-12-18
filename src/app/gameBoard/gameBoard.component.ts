@@ -1,5 +1,6 @@
 import {Component, OnInit, ViewEncapsulation,Input,EventEmitter} from '@angular/core';
 import { AgmCoreModule } from 'angular2-google-maps/core';
+import {GameData, gameData} from '../../data/game_data';
 
 @Component({
     selector: 'gameBoard',
@@ -10,15 +11,19 @@ import { AgmCoreModule } from 'angular2-google-maps/core';
 
 export class GameBoardComponent implements OnInit {
     distance: string;
+    currentAddress: string;
+    timePast: string;
+    gameData: GameData = gameData;
+    test: string = 'test data';
     constructor() {      
-        console.log('game board');
+       
     }
 
     ngOnInit() {
     }
-
-    distanceFormat(km:string) {
-        this.distance = km;
+    distanceFormat(event:Object) {
+        this.distance = event.distance;
+        this.currentAddress = event.currentAddress;
     }
        
 }

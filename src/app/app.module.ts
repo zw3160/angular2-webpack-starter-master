@@ -20,10 +20,16 @@ import {GameDetailsModule} from './gameDetails/gameDetails.module';
 import {GameMapModule} from './gameMap/gameMap.module';
 import {GameBoardModule} from './gameBoard/gameBoard.module';
 import {CreateGameModule} from './createGame/createGame.module';
+import {RaceHomeModule} from './raceHome/raceHome.module';
+import { HistoryModule} from './history/history.module';
 import { NoContentComponent } from './no-content';
 import { XLarge } from './home/x-large';
 import { AgmCoreModule } from 'angular2-google-maps/core';
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap'; //bootstrap
+import { ModalModule } from 'ng2-bootstrap/ng2-bootstrap';
+import {MomentModule} from 'angular2-moment/module';//Moment
+
+//import { ModalModule } from 
 
 // Application wide providers
 const APP_PROVIDERS = [
@@ -51,12 +57,15 @@ type StoreType = {
   ],
   imports: [ // import Angular's modules
     BrowserModule,
+    ModalModule,
     FormsModule,
     GameModule,
     GameDetailsModule,
     GameMapModule,
     GameBoardModule,
     CreateGameModule,
+    HistoryModule,
+    RaceHomeModule,
     HttpModule,
     AgmCoreModule.forRoot({apiKey: 'AIzaSyA3MSv-mmUENEGYU4-0d37eWaASZji01zQ'}),
     RouterModule.forRoot(ROUTES, { useHash: true }),
